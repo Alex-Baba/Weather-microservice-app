@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual envs
+env/
+venv/
+.venv/
+
+# Local env file
+.env
+.env.* 
+
+# IDEs / OS
+.vscode/
+.vs/
+.DS_Store
+Thumbs.db
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Testing / tooling caches
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Logs
+*.log
+logs/
+
+# Generated code artifacts (compiled files)
+generated/*.pyc
+
+# Optional: ignore generated source files if you don't want to commit them
+# generated/
