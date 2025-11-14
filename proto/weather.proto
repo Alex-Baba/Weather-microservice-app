@@ -1,7 +1,7 @@
-syntax= "proto3"
+syntax= "proto3";
 
 service WeatherService{
-    rpc GetWeather (WeatherRequest) returns (WeatherResponse)
+    rpc GetWeather (WeatherRequest) returns (WeatherResponse);
 }
 
 message WeatherRequest{
