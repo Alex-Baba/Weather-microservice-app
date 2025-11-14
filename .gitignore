@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.pyc
+env/
+venv/
+.venv/
+.env
+.vscode/
+
+# generated code (optional)
+generated/*.pyc
