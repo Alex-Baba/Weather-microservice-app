@@ -1,0 +1,6 @@
+grpcio-tools==1.76.0
+requests==2.32.5
+pymongo==4.15.4
+python-dotenv==1.2.1
+pytest==9.0.1
+pydantic==2.12.4
