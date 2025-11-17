@@ -42,3 +42,66 @@ generated/*.pyc
 
 # Optional: ignore generated source files if you don't want to commit them
 # generated/
+
+# JetBrains / other editors
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local environment overrides
+.env.local
+.env.*.local
+
+# Secret / key files
+*.pem
+*.key
+*.crt
+credentials.json
+secrets.yml
+
+# Databases / local stores
+*.sqlite3
+*.sqlite
+*.db
+*.db-journal
+
+# OS files
+desktop.ini
+
+# Docker
+docker-compose.override.yml
+docker-compose.*.yml
+
+# Terraform / Vagrant
+.terraform/
+terraform.tfstate*
+.terraform.lock.hcl
+.vagrant/
+
+# Node / frontend (if present)
+node_modules/
+npm-debug.log*
+yarn-error.log
+
+# Compiled / binary artifacts
+*.so
+*.dylib
+*.dll
+*.exe
+*.pyd
+
+# Python tool caches not already listed
+.python-version
+pip-wheel-metadata/
+
+# CI / build artifacts
+dist/
+.build/
+
+# If you don't want to commit generated gRPC code, uncomment:
+# generated/
