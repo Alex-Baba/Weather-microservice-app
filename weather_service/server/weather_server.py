@@ -3,6 +3,9 @@ import requests
 import grpc
 from concurrent import futures
 from generated.proto import weather_pb2, weather_pb2_grpc
+from dotenv import load_dotenv
+
+load_dotenv()
 
 OPENWEATHER_KEY = os.getenv("OPENWEATHER_API_KEY")
 GRPC_API_KEY = os.getenv("GRPC_API_KEY", "secret123")
