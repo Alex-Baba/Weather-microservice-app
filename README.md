@@ -7,3 +7,5 @@ s-a facut structura minima a proiectului
 s-a facut gRPC client
 
 s-a facut gRPC sever
+
+s-a adaugat provider
