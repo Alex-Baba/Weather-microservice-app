@@ -5,6 +5,8 @@ from concurrent import futures
 from generated.proto import weather_pb2, weather_pb2_grpc
 from dotenv import load_dotenv
 
+from .interceptors.api_key import ApiKeyInterceptor
+
 load_dotenv()
 
 OPENWEATHER_KEY = os.getenv("OPENWEATHER_API_KEY")
@@ -43,7 +45,9 @@ class WeatherServicer(weather_pb2_grpc.WeatherServiceServicer):
             return weather_pb2.WeatherResponse(error=str(e))
 
 def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    # attach the API key interceptor so the server rejects unauthenticated requests
+    interceptor = ApiKeyInterceptor()
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10), interceptors=(interceptor,))
     weather_pb2_grpc.add_WeatherServiceServicer_to_server(WeatherServicer(), server)
     server.add_insecure_port("[::]:50051")
     server.start()
