@@ -22,7 +22,7 @@ class WeatherServicer(weather_pb2_grpc.WeatherServiceServicer):
 
         try:
             resp = requests.get(
-                "http://api.openweathermap.org/data/2.5/weather",
+                "https://api.openweathermap.org/data/2.5/weather",
                 params={"q": city, "appid": OPENWEATHER_KEY, "units": "metric"},
                 timeout=5,
             )
