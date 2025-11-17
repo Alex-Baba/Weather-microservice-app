@@ -11,7 +11,7 @@ class DummyResponse:
 
     def raise_for_status(self):
         if self.status >= 400:
-            err = requests.HTTPError()
+            err = requests.HTTPError(f"{self.status} Client Error")
             err.response = types.SimpleNamespace(status_code=self.status)
             raise err
 
@@ -86,8 +86,8 @@ def test_getweather_auth_failure(monkeypatch):
 
 
 def test_getweather_missing_api_key(monkeypatch):
-    # ensure OPENWEATHER_API_KEY is not set
-    monkeypatch.delenv("OPENWEATHER_API_KEY", raising=False)
+    # ensure OPENWEATHER_API_KEY is empty (avoid loading from .env)
+    monkeypatch.setenv("OPENWEATHER_API_KEY", "")
     monkeypatch.setenv("GRPC_API_KEY", "secret123")
     srv = reload_server(monkeypatch)
 
