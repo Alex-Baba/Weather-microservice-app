@@ -1,33 +1,34 @@
+
 services:
-	mongo:
-		image: mongo:6.0
-		container_name: weather-mongo
-		ports:
-			- '27017:27017'
-		volumes:
-			- weather-mongo-data:/data/db
+  mongo:
+    image: mongo:6.0
+    container_name: weather-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - weather-mongo-data:/data/db
 
-	api:
-		build: .
-		container_name: weather-api
-		depends_on:
-			- mongo
-		environment:
-			- MONGO_URI=mongodb://mongo:27017
-			- MONGO_DB=weather_db
-			- MONGO_COLLECTION=weather
-			- OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
-		ports:
-			- '8000:8000'
+  api:
+    build: .
+    container_name: weather-api
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URI: "mongodb://mongo:27017"
+      MONGO_DB: "weather_db"
+      MONGO_COLLECTION: "weather"
+      OPENWEATHER_API_KEY: "${OPENWEATHER_API_KEY}"
+    ports:
+      - "8000:8000"
 
-	frontend:
-		build: ./weather-ui
-		container_name: weather-frontend
-		ports:
-			- '5173:80'
-		depends_on:
-			- api
+  frontend:
+    build: ./weather-ui
+    container_name: weather-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
 
 volumes:
-	weather-mongo-data:
+  weather-mongo-data:
 
