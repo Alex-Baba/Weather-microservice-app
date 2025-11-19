@@ -4,13 +4,14 @@ from typing import Dict, Optional
 import requests
 
 from .base import WeatherProvider, ProviderError, CityNotFoundError
+from weather_service.server.config import settings
 
 
 class OpenWeatherProvider(WeatherProvider):
     API_URL = "http://api.openweathermap.org/data/2.5/weather"
 
     def __init__(self, api_key: Optional[str] = None, timeout: float = 5.0):
-        self.api_key = api_key or os.getenv("OPENWEATHER_API_KEY")
+        self.api_key = api_key or settings.OPENWEATHER_API_KEY
         self.timeout = timeout
         if not self.api_key:
             raise RuntimeError("OpenWeather API key not configured")

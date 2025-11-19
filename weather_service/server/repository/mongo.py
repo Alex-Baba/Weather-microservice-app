@@ -1,11 +1,12 @@
-import os
 from typing import Optional
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-MONGO_DB = os.getenv("MONGO_DB", "weather_db")
-MONGO_COLLECTION = os.getenv("MONGO_COLLECTION", "weather")
+from weather_service.server.config import settings
+
+MONGO_URI = settings.MONGO_URI
+MONGO_DB = settings.MONGO_DB
+MONGO_COLLECTION = settings.MONGO_COLLECTION
 
 _client: Optional[MongoClient] = None
 
