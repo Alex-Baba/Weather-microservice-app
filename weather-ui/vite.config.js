@@ -5,7 +5,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/weather': 'http://localhost:8000'
+      '/weather': 'http://localhost:8000',
+      '/history': 'http://localhost:8000',
+      '/health': 'http://localhost:8000'
     }
   }
 })

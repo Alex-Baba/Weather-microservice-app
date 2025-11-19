@@ -9,6 +9,7 @@ from weather_service.server.providers.base import CityNotFoundError, ProviderErr
 from weather_service.server.repository import mongo as repo_mongo
 from datetime import datetime
 from bson import ObjectId
+from weather_service.server import storage
 
 logger = logging.getLogger("weather.frontend")
 
@@ -45,6 +46,12 @@ def get_weather(city: str = Query(..., min_length=1)):
     except Exception as e:
         logger.exception("Unexpected error in provider")
         raise HTTPException(status_code=500, detail="internal error")
+
+    # persist the fetched weather (best-effort)
+    try:
+        storage.save_weather(data)
+    except Exception:
+        logger.exception("Failed to save weather to DB")
 
     return {
         "city_name": data.get("city_name"),
