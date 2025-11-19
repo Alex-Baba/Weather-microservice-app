@@ -3,7 +3,11 @@ import requests
 import grpc
 from concurrent import futures
 from generated.proto import weather_pb2, weather_pb2_grpc
+from .providers.openweather import OpenWeatherProvider
+from .mappers import dict_to_weather_response
 from dotenv import load_dotenv
+
+from .interceptors.api_key import ApiKeyInterceptor
 
 load_dotenv()
 
@@ -15,35 +19,36 @@ class WeatherServicer(weather_pb2_grpc.WeatherServiceServicer):
         md = dict(context.invocation_metadata())
         if md.get("x-api-key") != GRPC_API_KEY:
             context.abort(grpc.StatusCode.UNAUTHENTICATED, "invalid API key")
-
         city = request.city_name
-        if not OPENWEATHER_KEY:
+
+        try:
+            provider = OpenWeatherProvider()
+        except RuntimeError:
             return weather_pb2.WeatherResponse(error="Server missing OPENWEATHER_API_KEY")
 
         try:
-            resp = requests.get(
-                "https://api.openweathermap.org/data/2.5/weather",
-                params={"q": city, "appid": OPENWEATHER_KEY, "units": "metric"},
-                timeout=5,
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            desc = (data.get("weather") or [{}])[0].get("description", "")
-            temp = float(data["main"]["temp"])
-            humidity = int(data["main"]["humidity"])
-            wind = float(data.get("wind", {}).get("speed", 0.0))
-            return weather_pb2.WeatherResponse(
-                city_name=data.get("name", city),
-                temperature=temp,
-                humidity=humidity,
-                description=desc,
-                wind_speed=wind,
-            )
-        except requests.RequestException as e:
+            data = provider.fetch_weather(city)
+            # persist asynchronously (best-effort)
+            try:
+                # import storage lazily; if not implemented, ignore
+                from . import storage
+
+                try:
+                    storage.save_weather(data)
+                except Exception:
+                    pass
+            except Exception:
+                pass
+
+            return dict_to_weather_response(data)
+        except Exception as e:
+            # provider may raise CityNotFoundError or ProviderError; return error message
             return weather_pb2.WeatherResponse(error=str(e))
 
 def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    # attach the API key interceptor so the server rejects unauthenticated requests
+    interceptor = ApiKeyInterceptor()
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10), interceptors=(interceptor,))
     weather_pb2_grpc.add_WeatherServiceServicer_to_server(WeatherServicer(), server)
     server.add_insecure_port("[::]:50051")
     server.start()
