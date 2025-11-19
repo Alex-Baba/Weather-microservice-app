@@ -5,14 +5,11 @@ from concurrent import futures
 from generated.proto import weather_pb2, weather_pb2_grpc
 from .providers.openweather import OpenWeatherProvider
 from .mappers import dict_to_weather_response
-from dotenv import load_dotenv
 
+from weather_service.server.config import settings
 from .interceptors.api_key import ApiKeyInterceptor
 
-load_dotenv()
-
-OPENWEATHER_KEY = os.getenv("OPENWEATHER_API_KEY")
-GRPC_API_KEY = os.getenv("GRPC_API_KEY", "secret123")
+GRPC_API_KEY = settings.GRPC_API_KEY
 
 class WeatherServicer(weather_pb2_grpc.WeatherServiceServicer):
     def GetWeather(self, request, context):
