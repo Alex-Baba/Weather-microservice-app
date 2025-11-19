@@ -31,6 +31,14 @@ def insert_document(doc: dict):
     return col.insert_one(doc).inserted_id
 
 
+def find_documents(filter: dict = None, limit: int = 100, sort: list = None):
+    col = get_collection()
+    flt = filter or {}
+    s = sort or [("fetched_at", -1)]
+    cursor = col.find(flt).sort(s).limit(limit)
+    return list(cursor)
+
+
 def close_client():
     global _client
     if _client is not None:

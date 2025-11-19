@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 
 from weather_service.server.providers.openweather import OpenWeatherProvider
 from weather_service.server.providers.base import CityNotFoundError, ProviderError
+from weather_service.server.repository import mongo as repo_mongo
+from datetime import datetime
+from bson import ObjectId
 
 logger = logging.getLogger("weather.frontend")
 
@@ -56,3 +59,30 @@ def get_weather(city: str = Query(..., min_length=1)):
 def health():
     key = os.getenv("OPENWEATHER_API_KEY")
     return {"ok": True, "openweather_api_key_present": bool(key)}
+
+
+@app.get("/history")
+def history(city: str | None = Query(None), limit: int = Query(50, ge=1, le=1000)):
+    flt = {}
+    if city:
+        flt["city_name"] = city
+
+    try:
+        docs = repo_mongo.find_documents(filter=flt, limit=limit)
+    except Exception as e:
+        logger.exception("DB error fetching history")
+        raise HTTPException(status_code=500, detail="db error")
+
+    def serialize(doc: dict):
+        out = {k: v for k, v in doc.items() if k != "_id"}
+        # convert ObjectId
+        out["id"] = str(doc.get("_id"))
+        # convert datetime
+        fa = doc.get("fetched_at")
+        if isinstance(fa, datetime):
+            out["fetched_at"] = fa.isoformat()
+        else:
+            out["fetched_at"] = fa
+        return out
+
+    return [serialize(d) for d in docs]
