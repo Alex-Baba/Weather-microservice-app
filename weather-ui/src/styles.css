@@ -1,0 +1,6 @@
+body { font-family: system-ui, sans-serif; padding: 2rem; }
+.container { max-width: 640px; margin: 0 auto }
+input { padding: 0.5rem; margin-right: 0.5rem }
+button { padding: 0.5rem 1rem }
+.card { background: #f6f8fa; padding: 1rem; border-radius: 6px; margin-top: 1rem }
+.error { color: #b00020 }
