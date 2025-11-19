@@ -24,7 +24,10 @@ class OpenWeatherProvider(WeatherProvider):
                 timeout=self.timeout,
             )
             resp.raise_for_status()
-            data = resp.json()
+            try:
+                data = resp.json()
+            except ValueError as e:
+                raise ProviderError("failed to parse provider response") from e
         except requests.HTTPError as e:
             status = getattr(e.response, "status_code", None)
             if status == 404:
