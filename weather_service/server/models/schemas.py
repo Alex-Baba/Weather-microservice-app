@@ -2,19 +2,21 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, BaseSettings, Field
+import os
+from pydantic import BaseModel, Field
+from dotenv import load_dotenv
+
+# load .env if present
+load_dotenv()
 
 
-class Settings(BaseSettings):
-    OPENWEATHER_API_KEY: Optional[str]
-    GRPC_API_KEY: str = Field(default="secret123")
-    MONGO_URI: str = Field(default="mongodb://localhost:27017")
-    MONGO_DB: str = Field(default="weather_db")
-    MONGO_COLLECTION: str = Field(default="weather")
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+class Settings:
+    def __init__(self):
+        self.OPENWEATHER_API_KEY: Optional[str] = os.getenv("OPENWEATHER_API_KEY")
+        self.GRPC_API_KEY: str = os.getenv("GRPC_API_KEY", "secret123")
+        self.MONGO_URI: str = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+        self.MONGO_DB: str = os.getenv("MONGO_DB", "weather_db")
+        self.MONGO_COLLECTION: str = os.getenv("MONGO_COLLECTION", "weather")
 
 
 class WeatherData(BaseModel):
