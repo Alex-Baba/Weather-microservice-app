@@ -74,3 +74,41 @@ def test_fetch_weather_network_error(monkeypatch):
     provider = OpenWeatherProvider()
     with pytest.raises(ProviderError):
         provider.fetch_weather("TestCity")
+
+
+def test_fetch_weather_malformed_json(monkeypatch):
+    monkeypatch.setenv("OPENWEATHER_API_KEY", "dummykey")
+
+    class BadJSONResponse(DummyResponse):
+        def json(self):
+            raise ValueError("Malformed JSON")
+
+    def fake_get_bad(url, params=None, timeout=None):
+        return BadJSONResponse(None, status=200)
+
+    monkeypatch.setattr("requests.get", fake_get_bad)
+
+    provider = OpenWeatherProvider()
+    with pytest.raises(ProviderError):
+        provider.fetch_weather("TestCity")
+
+
+def test_fetch_weather_missing_fields(monkeypatch):
+    monkeypatch.setenv("OPENWEATHER_API_KEY", "dummykey")
+
+    # Response missing 'main' and 'weather' keys
+    minimal = {"name": "MinimalCity"}
+
+    def fake_get_min(url, params=None, timeout=None):
+        return DummyResponse(minimal, status=200)
+
+    monkeypatch.setattr("requests.get", fake_get_min)
+
+    provider = OpenWeatherProvider()
+    data = provider.fetch_weather("MinimalCity")
+
+    assert data["city_name"] == "MinimalCity"
+    assert data["temperature"] == 0.0
+    assert data["humidity"] == 0
+    assert data["description"] == ""
+    assert data["wind_speed"] == 0.0
