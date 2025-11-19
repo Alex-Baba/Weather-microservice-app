@@ -4,6 +4,7 @@ from typing import Dict, Optional
 import requests
 
 from .base import WeatherProvider, ProviderError, CityNotFoundError
+from weather_service.server.config import settings
 
 
 class OpenWeatherProvider(WeatherProvider):
