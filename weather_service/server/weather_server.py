@@ -30,11 +30,11 @@ class WeatherServicer(weather_pb2_grpc.WeatherServiceServicer):
             data = provider.fetch_weather(city)
             # persist asynchronously (best-effort)
             try:
-                # import storage lazily; if not implemented, ignore
-                from . import storage
+                # insert directly into repository
+                from .repository import mongo as repo_mongo
 
                 try:
-                    storage.save_weather(data)
+                    repo_mongo.insert_document(data)
                 except Exception:
                     pass
             except Exception:
