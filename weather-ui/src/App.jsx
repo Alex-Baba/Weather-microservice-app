@@ -13,6 +13,8 @@ export default function App() {
   const [historyLoading, setHistoryLoading] = useState(false)
   const [chartData, setChartData] = useState(null)
   const modalTimerRef = useRef(null)
+  const intervalRef = useRef(null)
+  const [countdown, setCountdown] = useState(0)
   const [selectedMetric, setSelectedMetric] = useState('temperature')
   const [availableCities, setAvailableCities] = useState([])
   const [selectedCities, setSelectedCities] = useState([])
@@ -108,19 +110,66 @@ export default function App() {
     }
   }
 
-  // Auto-close modal after 5 seconds
+  // Auto-close modal after 5 seconds and show countdown
   useEffect(() => {
+    // clear any existing timers
     if (modalTimerRef.current) {
       clearTimeout(modalTimerRef.current)
       modalTimerRef.current = null
     }
-    if (modalMessage) {
-      modalTimerRef.current = setTimeout(() => setModalMessage(null), 5000)
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
     }
+
+    if (modalMessage) {
+      // start countdown from 5
+      setCountdown(5)
+      modalTimerRef.current = setTimeout(() => {
+        setModalMessage(null)
+      }, 5000)
+
+      intervalRef.current = setInterval(() => {
+        setCountdown((s) => {
+          if (s <= 1) {
+            // clear interval when reaching zero
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current)
+              intervalRef.current = null
+            }
+            return 0
+          }
+          return s - 1
+        })
+      }, 1000)
+    } else {
+      setCountdown(0)
+    }
+
     return () => {
-      if (modalTimerRef.current) clearTimeout(modalTimerRef.current)
+      if (modalTimerRef.current) {
+        clearTimeout(modalTimerRef.current)
+        modalTimerRef.current = null
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
     }
   }, [modalMessage])
+
+  const hideModal = () => {
+    if (modalTimerRef.current) {
+      clearTimeout(modalTimerRef.current)
+      modalTimerRef.current = null
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+    setCountdown(0)
+    setModalMessage(null)
+  }
 
   return (
     <div className="container">
@@ -180,12 +229,12 @@ export default function App() {
       )}
 
       {modalMessage && (
-        <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }} onClick={() => setModalMessage(null)}>
+        <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }} onClick={hideModal}>
           <div style={{ background: '#fff', padding: 20, borderRadius: 8, minWidth: 280 }} onClick={(e) => e.stopPropagation()}>
             <h4 style={{ marginTop: 0 }}>Notice</h4>
             <p>{modalMessage}</p>
             <div style={{ textAlign: 'right' }}>
-              <button onClick={() => setModalMessage(null)}>Close</button>
+              <button onClick={hideModal}>Close{countdown > 0 ? ` (${countdown})` : ''}</button>
             </div>
           </div>
         </div>
