@@ -75,6 +75,9 @@ export default function App() {
           <p>Humidity: {result.humidity}%</p>
           <p>Conditions: {result.description}</p>
           <p>Wind speed: {result.wind_speed} m/s</p>
+          {result.fetched_at && (
+            <p>Fetched at: {new Date(result.fetched_at).toLocaleString()}</p>
+          )}
         </div>
       )}
 
@@ -98,7 +101,7 @@ export default function App() {
                   <td>{h.city_name}</td>
                   <td style={{ textAlign: 'center' }}>{h.temperature}</td>
                   <td style={{ textAlign: 'center' }}>{h.humidity}</td>
-                  <td style={{ textAlign: 'center' }}>{h.fetched_at}</td>
+                  <td style={{ textAlign: 'center' }}>{h.fetched_at ? new Date(h.fetched_at).toLocaleString() : ''}</td>
                 </tr>
               ))}
             </tbody>

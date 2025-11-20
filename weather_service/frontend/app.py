@@ -26,6 +26,7 @@ class WeatherOut(BaseModel):
     humidity: int
     description: str | None = ""
     wind_speed: float
+    fetched_at: str | None = None
 
 
 @app.get("/weather", response_model=WeatherOut)
@@ -53,12 +54,20 @@ def get_weather(city: str = Query(..., min_length=1)):
     except Exception:
         logger.exception("Failed to save weather to DB")
 
+    # convert fetched_at to ISO string if present
+    fa = data.get("fetched_at")
+    if isinstance(fa, datetime):
+        fa_iso = fa.isoformat()
+    else:
+        fa_iso = fa
+
     return {
         "city_name": data.get("city_name"),
         "temperature": data.get("temperature"),
         "humidity": data.get("humidity"),
         "description": data.get("description"),
         "wind_speed": data.get("wind_speed"),
+        "fetched_at": fa_iso,
     }
 
 
