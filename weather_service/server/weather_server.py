@@ -25,21 +25,23 @@ class WeatherServicer(weather_pb2_grpc.WeatherServiceServicer):
 
         try:
             data = provider.fetch_weather(city)
-            # persist asynchronously (best-effort)
-            try:
-                from . import storage
+        except CityNotFoundError as e:
+            context.abort(grpc.StatusCode.NOT_FOUND, str(e))
+        except Exception as e:
+            # ProviderError or network/parsing issues
+            context.abort(grpc.StatusCode.UNAVAILABLE, str(e))
 
-                try:
-                    storage.save_weather(data)
-                except Exception:
-                    pass
+        # persist asynchronously (best-effort)
+        try:
+            from . import storage
+            try:
+                storage.save_weather(data)
             except Exception:
                 pass
+        except Exception:
+            pass
 
-            return dict_to_weather_response(data)
-        except Exception as e:
-            # provider may raise CityNotFoundError or ProviderError; return gRPC error
-            context.abort(grpc.StatusCode.UNKNOWN, str(e))
+        return dict_to_weather_response(data)
 
 def serve():
     # attach the API key interceptor so the server rejects unauthenticated requests

@@ -37,6 +37,15 @@ def run_cli(city: str, host: str, port: int, api_key: str, timeout: float = 10.0
     except grpc.RpcError as e:
         code = e.code() if hasattr(e, 'code') else None
         details = e.details() if hasattr(e, 'details') else str(e)
+        if code == grpc.StatusCode.NOT_FOUND:
+            print(f"City not found: {details}")
+            return 3
+        if code == grpc.StatusCode.UNAVAILABLE:
+            print(f"Provider unavailable or API failure: {details}")
+            return 4
+        if code == grpc.StatusCode.UNAUTHENTICATED:
+            print(f"Authentication failed: check your gRPC API key")
+            return 5
         print(f"RPC failed: {code} - {details}")
         return 2
 
