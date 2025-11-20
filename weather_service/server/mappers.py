@@ -1,5 +1,5 @@
 from typing import Dict
-from datetime import datetime
+from datetime import datetime, timezone
 from google.protobuf.timestamp_pb2 import Timestamp
 from generated.proto import weather_pb2
 
@@ -16,8 +16,13 @@ def dict_to_weather_response(data: Dict) -> weather_pb2.WeatherResponse:
 
     fa = data.get("fetched_at")
     if isinstance(fa, datetime):
+        # If fetched_at is timezone-aware local time, convert to UTC for the protobuf Timestamp
+        if fa.tzinfo is not None:
+            fa_utc = fa.astimezone(timezone.utc)
+        else:
+            fa_utc = fa
         ts = Timestamp()
-        ts.FromDatetime(fa)
+        ts.FromDatetime(fa_utc)
         msg.fetched_at.CopyFrom(ts)
 
     return msg
