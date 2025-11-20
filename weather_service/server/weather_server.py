@@ -5,6 +5,7 @@ from concurrent import futures
 from generated.proto import weather_pb2, weather_pb2_grpc
 from .providers.openweather import OpenWeatherProvider
 from .mappers import dict_to_weather_response
+from .providers.base import CityNotFoundError
 
 from weather_service.server.config import settings
 from .interceptors.api_key import ApiKeyInterceptor

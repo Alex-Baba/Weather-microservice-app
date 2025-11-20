@@ -36,7 +36,7 @@ def test_client_prints_weather(monkeypatch, capsys):
             # run main
             from weather_service.client import client
 
-            client.main()
+            client.main([])
 
     captured = capsys.readouterr()
     assert "Weather for London:" in captured.out
@@ -60,7 +60,7 @@ def test_client_handles_error(monkeypatch, capsys):
         with mock.patch("weather_service.client.client.weather_pb2") as pb:
             pb.WeatherRequest = lambda **kwargs: mock.MagicMock()
             from weather_service.client import client
-            client.main()
+            client.main([])
 
     captured = capsys.readouterr()
     assert "Error: city not found" in captured.out

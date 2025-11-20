@@ -7,6 +7,9 @@ from generated.proto import weather_pb2, weather_pb2_grpc
 
 def format_response(resp):
     out = []
+    # Some server implementations may return an `error` string field.
+    if hasattr(resp, "error") and getattr(resp, "error"):
+        return f"Error: {resp.error}"
     out.append(f"Weather for {resp.city_name}:")
     out.append(f"  Temperature: {resp.temperature} °C")
     out.append(f"  Humidity: {resp.humidity}%")
@@ -50,13 +53,13 @@ def run_cli(city: str, host: str, port: int, api_key: str, timeout: float = 10.0
         return 2
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description='gRPC Weather client')
     parser.add_argument('city', nargs='?', help='City name to fetch')
     parser.add_argument('--host', default=os.getenv('GRPC_HOST', 'localhost'), help='gRPC server host')
     parser.add_argument('--port', type=int, default=int(os.getenv('GRPC_PORT', '50051')), help='gRPC server port')
     parser.add_argument('--api-key', default=os.getenv('GRPC_API_KEY', settings.GRPC_API_KEY), help='API key for gRPC x-api-key metadata')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     city = args.city
     if not city:
