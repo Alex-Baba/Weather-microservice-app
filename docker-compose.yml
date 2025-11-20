@@ -11,6 +11,8 @@ services:
   api:
     build: .
     container_name: weather-api
+    env_file:
+      - .env
     depends_on:
       - mongo
     environment:
