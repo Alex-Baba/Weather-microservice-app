@@ -1,4 +1,27 @@
 import React, { useState } from 'react'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  TimeScale,
+} from 'chart.js'
+import { Line } from 'react-chartjs-2'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  TimeScale
+)
 
 export default function App() {
   const [city, setCity] = useState('')
@@ -7,6 +30,7 @@ export default function App() {
   const [error, setError] = useState(null)
   const [history, setHistory] = useState([])
   const [historyLoading, setHistoryLoading] = useState(false)
+  const [chartData, setChartData] = useState(null)
 
   async function fetchWeather(e) {
     e.preventDefault()
@@ -57,6 +81,25 @@ export default function App() {
             }
             const data = await res.json()
             setHistory(data)
+                // prepare chart data (temperature vs fetched_at)
+                const sorted = data
+                  .filter(d => d.fetched_at && typeof d.temperature === 'number')
+                  .slice()
+                  .sort((a, b) => new Date(a.fetched_at) - new Date(b.fetched_at))
+                const labels = sorted.map(d => new Date(d.fetched_at).toLocaleString())
+                const temps = sorted.map(d => d.temperature)
+                setChartData({
+                  labels,
+                  datasets: [
+                    {
+                      label: 'Temperature (°C)',
+                      data: temps,
+                      fill: false,
+                      borderColor: 'rgba(75,192,192,1)',
+                      tension: 0.1,
+                    }
+                  ]
+                })
           } catch (e) {
             setError(e.message)
           } finally {
@@ -106,6 +149,12 @@ export default function App() {
               ))}
             </tbody>
           </table>
+          {chartData && (
+            <div style={{ marginTop: 16 }}>
+              <h4>Temperature Trend</h4>
+              <Line data={chartData} />
+            </div>
+          )}
         </div>
       )}
     </div>
