@@ -21,6 +21,13 @@ def main():
         print(f"  Humidity: {resp.humidity}%")
         print(f"  Conditions: {resp.description}")
         print(f"  Wind Speed: {resp.wind_speed} m/s")
+        # show fetched time if available
+        try:
+            if hasattr(resp, "fetched_at") and resp.fetched_at.seconds:
+                dt = resp.fetched_at.ToDatetime()
+                print(f"  Fetched at: {dt.isoformat()}")
+        except Exception:
+            pass
     except grpc.RpcError as e:
         print("RPC failed:", e)
 
