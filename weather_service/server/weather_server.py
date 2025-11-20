@@ -21,7 +21,7 @@ class WeatherServicer(weather_pb2_grpc.WeatherServiceServicer):
         try:
             provider = OpenWeatherProvider()
         except RuntimeError:
-                return weather_pb2.WeatherResponse(error="Server missing OPENWEATHER_API_KEY")
+            context.abort(grpc.StatusCode.INTERNAL, "Server missing OPENWEATHER_API_KEY")
 
         try:
             data = provider.fetch_weather(city)
@@ -38,8 +38,8 @@ class WeatherServicer(weather_pb2_grpc.WeatherServiceServicer):
 
             return dict_to_weather_response(data)
         except Exception as e:
-            # provider may raise CityNotFoundError or ProviderError; return error message
-            return weather_pb2.WeatherResponse(error=str(e))
+            # provider may raise CityNotFoundError or ProviderError; return gRPC error
+            context.abort(grpc.StatusCode.UNKNOWN, str(e))
 
 def serve():
     # attach the API key interceptor so the server rejects unauthenticated requests
