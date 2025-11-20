@@ -21,7 +21,7 @@ class WeatherServicer(weather_pb2_grpc.WeatherServiceServicer):
         try:
             provider = OpenWeatherProvider()
         except RuntimeError:
-            return weather_pb2.WeatherResponse(error="Server missing OPENWEATHER_API_KEY")
+                return weather_pb2.WeatherResponse(error="Server missing OPENWEATHER_API_KEY")
 
         try:
             data = provider.fetch_weather(city)
