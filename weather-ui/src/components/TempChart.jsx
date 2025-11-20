@@ -23,11 +23,11 @@ ChartJS.register(
   TimeScale
 )
 
-export default function TempChart({ chartData }) {
+export default function TempChart({ chartData, metricLabel = 'Value' }) {
   if (!chartData) return null
   return (
     <div style={{ marginTop: 16 }}>
-      <h4>Temperature Trend</h4>
+      <h4>{metricLabel} Trend</h4>
       <Line data={chartData} />
     </div>
   )

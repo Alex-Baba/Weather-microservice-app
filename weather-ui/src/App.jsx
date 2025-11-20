@@ -11,6 +11,7 @@ export default function App() {
   const [history, setHistory] = useState([])
   const [historyLoading, setHistoryLoading] = useState(false)
   const [chartData, setChartData] = useState(null)
+  const [selectedMetric, setSelectedMetric] = useState('temperature')
   const [availableCities, setAvailableCities] = useState([])
   const [selectedCities, setSelectedCities] = useState([])
 
@@ -22,12 +23,25 @@ export default function App() {
     
     const datasets = selectedCities.map((city, idx) => {
       const cityRecords = history
-        .filter(d => d.city_name === city && d.fetched_at && typeof d.temperature === 'number')
+        .filter(d => d.city_name === city && d.fetched_at)
+        .filter(d => {
+          if (selectedMetric === 'temperature') return typeof d.temperature === 'number'
+          if (selectedMetric === 'humidity') return typeof d.humidity === 'number'
+          if (selectedMetric === 'wind') return typeof d.wind_speed === 'number'
+          return false
+        })
         .slice()
         .sort((a, b) => new Date(a.fetched_at) - new Date(b.fetched_at))
+      const valueAccessor = (d) => {
+        if (selectedMetric === 'temperature') return d.temperature
+        if (selectedMetric === 'humidity') return d.humidity
+        if (selectedMetric === 'wind') return d.wind_speed
+        return null
+      }
+
       return {
         label: city,
-        data: cityRecords.map(d => ({ x: new Date(d.fetched_at).toLocaleString(), y: d.temperature })),
+        data: cityRecords.map(d => ({ x: new Date(d.fetched_at).toLocaleString(), y: valueAccessor(d) })),
         fill: false,
         borderColor: `hsl(${(idx * 60) % 360} 70% 40%)`,
         tension: 0.1,
@@ -46,7 +60,12 @@ export default function App() {
       })
     }))
     setChartData({ labels: allLabels, datasets: finalDatasets })
-  }, [history, selectedCities])
+  }, [history, selectedCities, selectedMetric])
+
+  const metricLabel = selectedMetric === 'temperature' ? 'Temperature (°C)'
+    : selectedMetric === 'humidity' ? 'Humidity (%)'
+    : selectedMetric === 'wind' ? 'Wind Speed (m/s)'
+    : 'Value'
 
   async function fetchWeather(e) {
     e.preventDefault()
@@ -137,7 +156,18 @@ export default function App() {
           <h3>History</h3>
           {/* city selector moved below the chart */}
           <HistoryTable history={history} />
-          <TempChart chartData={chartData} />
+
+          {/* metric selector above the chart */}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '12px 0' }}>
+            <div style={{ fontWeight: 600 }}>Metric:</div>
+            <select value={selectedMetric} onChange={(e) => setSelectedMetric(e.target.value)}>
+              <option value="temperature">Temperature</option>
+              <option value="humidity">Humidity</option>
+              <option value="wind">Wind Speed</option>
+            </select>
+          </div>
+
+          <TempChart chartData={chartData} metricLabel={metricLabel} />
           <CitySelector availableCities={availableCities} selectedCities={selectedCities} setSelectedCities={setSelectedCities} />
         </div>
       )}
