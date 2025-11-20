@@ -22,19 +22,20 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
+from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13proto/weather.proto\"#\n\x0eWeatherRequest\x12\x11\n\tcity_name\x18\x01 \x01(\t\"\x83\x01\n\x0fWeatherResponse\x12\x11\n\tcity_name\x18\x01 \x01(\t\x12\x13\n\x0btemperature\x18\x02 \x01(\x02\x12\x10\n\x08humidity\x18\x03 \x01(\x05\x12\x13\n\x0b\x64\x65scription\x18\x04 \x01(\t\x12\x12\n\nwind_speed\x18\x05 \x01(\x02\x12\r\n\x05\x65rror\x18\x06 \x01(\t2A\n\x0eWeatherService\x12/\n\nGetWeather\x12\x0f.WeatherRequest\x1a\x10.WeatherResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13proto/weather.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"#\n\x0eWeatherRequest\x12\x11\n\tcity_name\x18\x01 \x01(\t\"\xa4\x01\n\x0fWeatherResponse\x12\x11\n\tcity_name\x18\x01 \x01(\t\x12\x13\n\x0btemperature\x18\x02 \x01(\x02\x12\x10\n\x08humidity\x18\x03 \x01(\x05\x12\x13\n\x0b\x64\x65scription\x18\x04 \x01(\t\x12\x12\n\nwind_speed\x18\x05 \x01(\x02\x12.\n\nfetched_at\x18\x06 \x01(\x0b\x32\x1a.google.protobuf.Timestamp2A\n\x0eWeatherService\x12/\n\nGetWeather\x12\x0f.WeatherRequest\x1a\x10.WeatherResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.weather_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_WEATHERREQUEST']._serialized_start=23
-  _globals['_WEATHERREQUEST']._serialized_end=58
-  _globals['_WEATHERRESPONSE']._serialized_start=61
-  _globals['_WEATHERRESPONSE']._serialized_end=192
-  _globals['_WEATHERSERVICE']._serialized_start=194
-  _globals['_WEATHERSERVICE']._serialized_end=259
+  _globals['_WEATHERREQUEST']._serialized_start=56
+  _globals['_WEATHERREQUEST']._serialized_end=91
+  _globals['_WEATHERRESPONSE']._serialized_start=94
+  _globals['_WEATHERRESPONSE']._serialized_end=258
+  _globals['_WEATHERSERVICE']._serialized_start=260
+  _globals['_WEATHERSERVICE']._serialized_end=325
 # @@protoc_insertion_point(module_scope)
