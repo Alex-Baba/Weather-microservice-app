@@ -1,27 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  TimeScale,
-} from 'chart.js'
-import { Line } from 'react-chartjs-2'
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  TimeScale
-)
+import TempChart from './components/TempChart'
+import CitySelector from './components/CitySelector'
+import HistoryTable from './components/HistoryTable'
 
 export default function App() {
   const [city, setCity] = useState('')
@@ -161,58 +141,9 @@ export default function App() {
         <div className="card">
           <h3>History</h3>
           {/* city selector moved below the chart */}
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: 'left' }}>City</th>
-                <th>Temp</th>
-                <th>Humidity</th>
-                <th>When</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.map((h) => (
-                <tr key={h.id}>
-                  <td>{h.city_name}</td>
-                  <td style={{ textAlign: 'center' }}>{h.temperature}</td>
-                  <td style={{ textAlign: 'center' }}>{h.humidity}</td>
-                  <td style={{ textAlign: 'center' }}>{h.fetched_at ? new Date(h.fetched_at).toLocaleString() : ''}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {chartData && (
-            <div style={{ marginTop: 16 }}>
-              <h4>Temperature Trend</h4>
-              <Line data={chartData} />
-            </div>
-          )}
-          {/* nicer selector under the chart */}
-          <div style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 18, marginBottom: 8, fontWeight: 600 }}>Select cities to plot</div>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12, maxHeight: 160, overflowY: 'auto', minWidth: 220 }}>
-                {availableCities.map(c => (
-                  <label key={c} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                    <input type="checkbox" checked={selectedCities.includes(c)} onChange={(e) => {
-                      if (e.target.checked) setSelectedCities(prev => [...prev, c])
-                      else setSelectedCities(prev => prev.filter(x => x !== c))
-                    }} />
-                    <span style={{ fontSize: 15 }}>{c}</span>
-                  </label>
-                ))}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <button type="button" onClick={() => setSelectedCities(Array.from(availableCities))}>Select all</button>
-                <button type="button" onClick={() => setSelectedCities([])}>Clear</button>
-              </div>
-            </div>
-            <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {selectedCities.map(c => (
-                <button key={c} type="button" onClick={() => setSelectedCities(prev => prev.filter(x => x !== c))} style={{ padding: '6px 10px', borderRadius: 16, border: '1px solid #ccc', background: '#f0f7ff' }}>{c} ×</button>
-              ))}
-            </div>
-          </div>
+          <HistoryTable history={history} />
+          <TempChart chartData={chartData} />
+          <CitySelector availableCities={availableCities} selectedCities={selectedCities} setSelectedCities={setSelectedCities} />
         </div>
       )}
     </div>
