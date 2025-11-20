@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import TempChart from './components/TempChart'
 import CitySelector from './components/CitySelector'
 import HistoryTable from './components/HistoryTable'
@@ -8,9 +8,11 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
+  const [modalMessage, setModalMessage] = useState(null)
   const [history, setHistory] = useState([])
   const [historyLoading, setHistoryLoading] = useState(false)
   const [chartData, setChartData] = useState(null)
+  const modalTimerRef = useRef(null)
   const [selectedMetric, setSelectedMetric] = useState('temperature')
   const [availableCities, setAvailableCities] = useState([])
   const [selectedCities, setSelectedCities] = useState([])
@@ -76,21 +78,49 @@ export default function App() {
       const res = await fetch(`/weather?city=${encodeURIComponent(city)}`)
       if (!res.ok) {
         const txt = await res.text()
-        throw new Error(txt)
+        const msg = txt || `HTTP ${res.status}`
+        if (/city not found/i.test(msg)) setModalMessage('City not found')
+        else setModalMessage(msg)
+        return
       }
       const ctype = res.headers.get('content-type') || ''
       if (!ctype.includes('application/json')) {
         const txt = await res.text()
-        throw new Error('Unexpected response (not JSON): ' + (txt || ctype))
+        setModalMessage('Unexpected response (not JSON): ' + (txt || ctype))
+        return
       }
       const data = await res.json()
+      // If server returned an error structure, show modal
+      if (data && (data.error || data.detail)) {
+        const m = (data.error || data.detail).toString()
+        if (/city not found/i.test(m)) setModalMessage('City not found')
+        else setModalMessage(m)
+        return
+      }
       setResult(data)
     } catch (err) {
       setError(err.message)
+      const m = err.message || String(err)
+      if (/city not found/i.test(m)) setModalMessage('City not found')
+      else setModalMessage(m)
     } finally {
       setLoading(false)
     }
   }
+
+  // Auto-close modal after 5 seconds
+  useEffect(() => {
+    if (modalTimerRef.current) {
+      clearTimeout(modalTimerRef.current)
+      modalTimerRef.current = null
+    }
+    if (modalMessage) {
+      modalTimerRef.current = setTimeout(() => setModalMessage(null), 5000)
+    }
+    return () => {
+      if (modalTimerRef.current) clearTimeout(modalTimerRef.current)
+    }
+  }, [modalMessage])
 
   return (
     <div className="container">
@@ -146,6 +176,18 @@ export default function App() {
           {result.fetched_at && (
             <p>Fetched at: {new Date(result.fetched_at).toLocaleString()}</p>
           )}
+        </div>
+      )}
+
+      {modalMessage && (
+        <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }} onClick={() => setModalMessage(null)}>
+          <div style={{ background: '#fff', padding: 20, borderRadius: 8, minWidth: 280 }} onClick={(e) => e.stopPropagation()}>
+            <h4 style={{ marginTop: 0 }}>Notice</h4>
+            <p>{modalMessage}</p>
+            <div style={{ textAlign: 'right' }}>
+              <button onClick={() => setModalMessage(null)}>Close</button>
+            </div>
+          </div>
         </div>
       )}
 
