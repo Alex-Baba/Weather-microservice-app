@@ -17,4 +17,4 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 
-CMD ["uvicorn", "weather_service.frontend.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "fastapi.app:app", "--host", "0.0.0.0", "--port", "8000"]
