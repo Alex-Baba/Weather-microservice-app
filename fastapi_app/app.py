@@ -91,9 +91,7 @@ def history(city: str | None = Query(None), limit: int = Query(50, ge=1, le=1000
 
     def serialize(doc: dict):
         out = {k: v for k, v in doc.items() if k != "_id"}
-        # convert ObjectId
         out["id"] = str(doc.get("_id"))
-        # convert datetime
         fa = doc.get("fetched_at")
         if isinstance(fa, datetime):
             out["fetched_at"] = fa.isoformat()
