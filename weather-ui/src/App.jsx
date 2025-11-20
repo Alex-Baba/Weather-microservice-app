@@ -19,7 +19,7 @@ export default function App() {
       setChartData(null)
       return
     }
-    // for each selected city, create a dataset
+    
     const datasets = selectedCities.map((city, idx) => {
       const cityRecords = history
         .filter(d => d.city_name === city && d.fetched_at && typeof d.temperature === 'number')
@@ -33,11 +33,11 @@ export default function App() {
         tension: 0.1,
       }
     })
-    // build unified label set (all timestamps across selected cities)
+    
     const allLabels = Array.from(new Set([
       ...datasets.flatMap(ds => ds.data.map(p => p.x))
     ])).sort((a, b) => new Date(a) - new Date(b))
-    // align data to labels (Chart.js will handle missing points)
+    
     const finalDatasets = datasets.map(ds => ({
       ...ds,
       data: allLabels.map(label => {
@@ -97,20 +97,15 @@ export default function App() {
             }
             const data = await res.json()
             setHistory(data)
-                // prepare chart data (temperature vs fetched_at)
+                
                 const sorted = data
                   .filter(d => d.fetched_at && typeof d.temperature === 'number')
                   .slice()
                   .sort((a, b) => new Date(a.fetched_at) - new Date(b.fetched_at))
-                // set available cities
+                
                 const cities = Array.from(new Set(sorted.map(d => d.city_name))).sort()
                 setAvailableCities(cities)
-                // default to first city if none selected
-                if (cities.length > 0 && selectedCities.length === 0) {
-                  setSelectedCities([cities[0]])
-                }
-                // build chart for current selection (or first city)
-                // chart will be built in useEffect when selectedCities is set
+                
           } catch (e) {
             setError(e.message)
           } finally {
