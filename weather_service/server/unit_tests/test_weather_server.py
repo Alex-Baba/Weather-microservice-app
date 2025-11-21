@@ -63,12 +63,13 @@ def test_getweather_success(monkeypatch):
     ctx = DummyContext(metadata=[("x-api-key", "secret123")])
     resp = srv.WeatherServicer().GetWeather(req, ctx)
 
-    assert resp.error == ""
     assert resp.city_name == "Barcelona"
     assert abs(resp.temperature - 21.5) < 0.001
     assert resp.humidity == 60
     assert resp.description == "clear sky"
     assert abs(resp.wind_speed - 3.2) < 0.001
+    # fetched_at should be set
+    assert resp.HasField("fetched_at")
 
 
 def test_getweather_auth_failure(monkeypatch):
@@ -93,8 +94,11 @@ def test_getweather_missing_api_key(monkeypatch):
 
     req = srv.weather_pb2.WeatherRequest(city_name="Paris")
     ctx = DummyContext(metadata=[("x-api-key", "secret123")])
-    resp = srv.WeatherServicer().GetWeather(req, ctx)
-    assert resp.error and "missing OPENWEATHER_API_KEY" in resp.error
+    try:
+        srv.WeatherServicer().GetWeather(req, ctx)
+        assert False, "expected abort"
+    except RuntimeError as e:
+        assert "missing OPENWEATHER_API_KEY" in str(e)
 
 
 def test_getweather_provider_http_error(monkeypatch):
@@ -109,5 +113,8 @@ def test_getweather_provider_http_error(monkeypatch):
 
     req = srv.weather_pb2.WeatherRequest(city_name="NoSuchCity")
     ctx = DummyContext(metadata=[("x-api-key", "secret123")])
-    resp = srv.WeatherServicer().GetWeather(req, ctx)
-    assert resp.error
+    try:
+        srv.WeatherServicer().GetWeather(req, ctx)
+        assert False, "expected abort"
+    except RuntimeError:
+        pass

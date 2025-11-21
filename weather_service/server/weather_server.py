@@ -5,6 +5,7 @@ from concurrent import futures
 from generated.proto import weather_pb2, weather_pb2_grpc
 from .providers.openweather import OpenWeatherProvider
 from .mappers import dict_to_weather_response
+from .providers.base import CityNotFoundError
 
 from weather_service.server.config import settings
 from .interceptors.api_key import ApiKeyInterceptor
@@ -21,25 +22,27 @@ class WeatherServicer(weather_pb2_grpc.WeatherServiceServicer):
         try:
             provider = OpenWeatherProvider()
         except RuntimeError:
-                return weather_pb2.WeatherResponse(error="Server missing OPENWEATHER_API_KEY")
+            context.abort(grpc.StatusCode.INTERNAL, "Server missing OPENWEATHER_API_KEY")
 
         try:
             data = provider.fetch_weather(city)
-            # persist asynchronously (best-effort)
-            try:
-                from . import storage
+        except CityNotFoundError as e:
+            context.abort(grpc.StatusCode.NOT_FOUND, str(e))
+        except Exception as e:
+            # ProviderError or network/parsing issues
+            context.abort(grpc.StatusCode.UNAVAILABLE, str(e))
 
-                try:
-                    storage.save_weather(data)
-                except Exception:
-                    pass
+        # persist asynchronously (best-effort)
+        try:
+            from . import storage
+            try:
+                storage.save_weather(data)
             except Exception:
                 pass
+        except Exception:
+            pass
 
-            return dict_to_weather_response(data)
-        except Exception as e:
-            # provider may raise CityNotFoundError or ProviderError; return error message
-            return weather_pb2.WeatherResponse(error=str(e))
+        return dict_to_weather_response(data)
 
 def serve():
     # attach the API key interceptor so the server rejects unauthenticated requests

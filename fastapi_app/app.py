@@ -26,6 +26,7 @@ class WeatherOut(BaseModel):
     humidity: int
     description: str | None = ""
     wind_speed: float
+    fetched_at: str | None = None
 
 
 @app.get("/weather", response_model=WeatherOut)
@@ -53,12 +54,20 @@ def get_weather(city: str = Query(..., min_length=1)):
     except Exception:
         logger.exception("Failed to save weather to DB")
 
+    # convert fetched_at to ISO string if present
+    fa = data.get("fetched_at")
+    if isinstance(fa, datetime):
+        fa_iso = fa.isoformat()
+    else:
+        fa_iso = fa
+
     return {
         "city_name": data.get("city_name"),
         "temperature": data.get("temperature"),
         "humidity": data.get("humidity"),
         "description": data.get("description"),
         "wind_speed": data.get("wind_speed"),
+        "fetched_at": fa_iso,
     }
 
 
@@ -82,9 +91,7 @@ def history(city: str | None = Query(None), limit: int = Query(50, ge=1, le=1000
 
     def serialize(doc: dict):
         out = {k: v for k, v in doc.items() if k != "_id"}
-        # convert ObjectId
         out["id"] = str(doc.get("_id"))
-        # convert datetime
         fa = doc.get("fetched_at")
         if isinstance(fa, datetime):
             out["fetched_at"] = fa.isoformat()

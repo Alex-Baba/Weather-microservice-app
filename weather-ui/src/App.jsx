@@ -1,12 +1,75 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import TempChart from './components/TempChart'
+import CitySelector from './components/CitySelector'
+import HistoryTable from './components/HistoryTable'
 
 export default function App() {
   const [city, setCity] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
+  const [modalMessage, setModalMessage] = useState(null)
   const [history, setHistory] = useState([])
   const [historyLoading, setHistoryLoading] = useState(false)
+  const [chartData, setChartData] = useState(null)
+  const modalTimerRef = useRef(null)
+  const intervalRef = useRef(null)
+  const [countdown, setCountdown] = useState(0)
+  const [selectedMetric, setSelectedMetric] = useState('temperature')
+  const [availableCities, setAvailableCities] = useState([])
+  const [selectedCities, setSelectedCities] = useState([])
+
+  useEffect(() => {
+    if (!history || history.length === 0 || selectedCities.length === 0) {
+      setChartData(null)
+      return
+    }
+    
+    const datasets = selectedCities.map((city, idx) => {
+      const cityRecords = history
+        .filter(d => d.city_name === city && d.fetched_at)
+        .filter(d => {
+          if (selectedMetric === 'temperature') return typeof d.temperature === 'number'
+          if (selectedMetric === 'humidity') return typeof d.humidity === 'number'
+          if (selectedMetric === 'wind') return typeof d.wind_speed === 'number'
+          return false
+        })
+        .slice()
+        .sort((a, b) => new Date(a.fetched_at) - new Date(b.fetched_at))
+      const valueAccessor = (d) => {
+        if (selectedMetric === 'temperature') return d.temperature
+        if (selectedMetric === 'humidity') return d.humidity
+        if (selectedMetric === 'wind') return d.wind_speed
+        return null
+      }
+
+      return {
+        label: city,
+        data: cityRecords.map(d => ({ x: new Date(d.fetched_at).toLocaleString(), y: valueAccessor(d) })),
+        fill: false,
+        borderColor: `hsl(${(idx * 60) % 360} 70% 40%)`,
+        tension: 0.1,
+      }
+    })
+    
+    const allLabels = Array.from(new Set([
+      ...datasets.flatMap(ds => ds.data.map(p => p.x))
+    ])).sort((a, b) => new Date(a) - new Date(b))
+    
+    const finalDatasets = datasets.map(ds => ({
+      ...ds,
+      data: allLabels.map(label => {
+        const found = ds.data.find(p => p.x === label)
+        return found ? found.y : null
+      })
+    }))
+    setChartData({ labels: allLabels, datasets: finalDatasets })
+  }, [history, selectedCities, selectedMetric])
+
+  const metricLabel = selectedMetric === 'temperature' ? 'Temperature (°C)'
+    : selectedMetric === 'humidity' ? 'Humidity (%)'
+    : selectedMetric === 'wind' ? 'Wind Speed (m/s)'
+    : 'Value'
 
   async function fetchWeather(e) {
     e.preventDefault()
@@ -17,20 +80,95 @@ export default function App() {
       const res = await fetch(`/weather?city=${encodeURIComponent(city)}`)
       if (!res.ok) {
         const txt = await res.text()
-        throw new Error(txt)
+        const msg = txt || `HTTP ${res.status}`
+        if (/city not found/i.test(msg)) setModalMessage('City not found')
+        else setModalMessage(msg)
+        return
       }
       const ctype = res.headers.get('content-type') || ''
       if (!ctype.includes('application/json')) {
         const txt = await res.text()
-        throw new Error('Unexpected response (not JSON): ' + (txt || ctype))
+        setModalMessage('Unexpected response (not JSON): ' + (txt || ctype))
+        return
       }
       const data = await res.json()
+      // If server returned an error structure, show modal
+      if (data && (data.error || data.detail)) {
+        const m = (data.error || data.detail).toString()
+        if (/city not found/i.test(m)) setModalMessage('City not found')
+        else setModalMessage(m)
+        return
+      }
       setResult(data)
     } catch (err) {
       setError(err.message)
+      const m = err.message || String(err)
+      if (/city not found/i.test(m)) setModalMessage('City not found')
+      else setModalMessage(m)
     } finally {
       setLoading(false)
     }
+  }
+
+  // Auto-close modal after 5 seconds and show countdown
+  useEffect(() => {
+    // clear any existing timers
+    if (modalTimerRef.current) {
+      clearTimeout(modalTimerRef.current)
+      modalTimerRef.current = null
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+
+    if (modalMessage) {
+      // start countdown from 5
+      setCountdown(5)
+      modalTimerRef.current = setTimeout(() => {
+        setModalMessage(null)
+      }, 5000)
+
+      intervalRef.current = setInterval(() => {
+        setCountdown((s) => {
+          if (s <= 1) {
+            // clear interval when reaching zero
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current)
+              intervalRef.current = null
+            }
+            return 0
+          }
+          return s - 1
+        })
+      }, 1000)
+    } else {
+      setCountdown(0)
+    }
+
+    return () => {
+      if (modalTimerRef.current) {
+        clearTimeout(modalTimerRef.current)
+        modalTimerRef.current = null
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+    }
+  }, [modalMessage])
+
+  const hideModal = () => {
+    if (modalTimerRef.current) {
+      clearTimeout(modalTimerRef.current)
+      modalTimerRef.current = null
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+    setCountdown(0)
+    setModalMessage(null)
   }
 
   return (
@@ -57,6 +195,15 @@ export default function App() {
             }
             const data = await res.json()
             setHistory(data)
+                
+                const sorted = data
+                  .filter(d => d.fetched_at && typeof d.temperature === 'number')
+                  .slice()
+                  .sort((a, b) => new Date(a.fetched_at) - new Date(b.fetched_at))
+                
+                const cities = Array.from(new Set(sorted.map(d => d.city_name))).sort()
+                setAvailableCities(cities)
+                
           } catch (e) {
             setError(e.message)
           } finally {
@@ -75,6 +222,21 @@ export default function App() {
           <p>Humidity: {result.humidity}%</p>
           <p>Conditions: {result.description}</p>
           <p>Wind speed: {result.wind_speed} m/s</p>
+          {result.fetched_at && (
+            <p>Fetched at: {new Date(result.fetched_at).toLocaleString()}</p>
+          )}
+        </div>
+      )}
+
+      {modalMessage && (
+        <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }} onClick={hideModal}>
+          <div style={{ background: '#fff', padding: 20, borderRadius: 8, minWidth: 280 }} onClick={(e) => e.stopPropagation()}>
+            <h4 style={{ marginTop: 0 }}>Notice</h4>
+            <p>{modalMessage}</p>
+            <div style={{ textAlign: 'right' }}>
+              <button onClick={hideModal}>Close{countdown > 0 ? ` (${countdown})` : ''}</button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -83,26 +245,21 @@ export default function App() {
       {history && history.length > 0 && (
         <div className="card">
           <h3>History</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: 'left' }}>City</th>
-                <th>Temp</th>
-                <th>Humidity</th>
-                <th>When</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.map((h) => (
-                <tr key={h.id}>
-                  <td>{h.city_name}</td>
-                  <td style={{ textAlign: 'center' }}>{h.temperature}</td>
-                  <td style={{ textAlign: 'center' }}>{h.humidity}</td>
-                  <td style={{ textAlign: 'center' }}>{h.fetched_at}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {/* city selector moved below the chart */}
+          <HistoryTable history={history} />
+
+          {/* metric selector above the chart */}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '12px 0' }}>
+            <div style={{ fontWeight: 600 }}>Metric:</div>
+            <select value={selectedMetric} onChange={(e) => setSelectedMetric(e.target.value)}>
+              <option value="temperature">Temperature</option>
+              <option value="humidity">Humidity</option>
+              <option value="wind">Wind Speed</option>
+            </select>
+          </div>
+
+          <TempChart chartData={chartData} metricLabel={metricLabel} />
+          <CitySelector availableCities={availableCities} selectedCities={selectedCities} setSelectedCities={setSelectedCities} />
         </div>
       )}
     </div>

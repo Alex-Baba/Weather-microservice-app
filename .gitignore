@@ -1,107 +1,52 @@
 # Python
+venv/
+env/
+.venv/
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
+*.egg-info/
 
-# Virtual envs
-env/
-venv/
-.venv/
+# Node / frontend
+node_modules/
+weather-ui/node_modules/
+weather-ui/dist/
+weather-ui/build/
 
-# Local env file
+# Env / secrets
 .env
-.env.* 
+.env.*
 
-# IDEs / OS
+# IDEs
 .vscode/
-.vs/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.swp
+
+# OS
 .DS_Store
 Thumbs.db
 
-# Build / packaging
-build/
-dist/
-*.egg-info/
-.eggs/
-pip-wheel-metadata/
+# Docker
+# (keep Dockerfile tracked; ignore only local variants if any)
+Dockerfile.local*
 
-# Testing / tooling caches
+# Tests / coverage
 .pytest_cache/
-.mypy_cache/
-.coverage
-coverage.xml
+coverage/
 htmlcov/
 
-# Logs
+# Logs and temp
 *.log
-logs/
+tmp/
+temp/
 
-# Generated code artifacts (compiled files)
-generated/*.pyc
-
-# Optional: ignore generated source files if you don't want to commit them
-# generated/
-
-# JetBrains / other editors
-.idea/
-*.iml
-*.sublime-project
-*.sublime-workspace
-*.code-workspace
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Local environment overrides
-.env.local
-.env.*.local
-
-# Secret / key files
-*.pem
-*.key
-*.crt
-credentials.json
-secrets.yml
-
-# Databases / local stores
-*.sqlite3
-*.sqlite
-*.db
-*.db-journal
-
-# OS files
-desktop.ini
-
-# Docker
-docker-compose.override.yml
-docker-compose.*.yml
-
-# Terraform / Vagrant
-.terraform/
-terraform.tfstate*
-.terraform.lock.hcl
-.vagrant/
-
-# Node / frontend (if present)
-node_modules/
-npm-debug.log*
-yarn-error.log
-
-# Compiled / binary artifacts
-*.so
-*.dylib
-*.dll
-*.exe
-*.pyd
-
-# Python tool caches not already listed
-.python-version
-pip-wheel-metadata/
-
-# CI / build artifacts
+# Build artifacts
 dist/
-.build/
+build/
+*.zip
+*.tar.gz
 
-# If you don't want to commit generated gRPC code, uncomment:
+# Optional (see note): generated code
 # generated/
+

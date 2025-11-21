@@ -1,0 +1,32 @@
+# Exclude git metadata
+.git
+
+# Python environments and caches
+venv
+env
+.venv
+__pycache__
+*.pyc
+
+# Node / frontend
+node_modules
+weather-ui/node_modules
+weather-ui/dist
+
+# Build outputs
+dist
+build
+*.egg-info
+
+# Local env files / secrets
+.env
+.env.*
+secrets*
+
+# IDE/editor files
+.vscode
+.idea
+*.swp
+
+# Docker-related
+Dockerfile*
