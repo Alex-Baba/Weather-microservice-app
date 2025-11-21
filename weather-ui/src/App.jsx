@@ -17,52 +17,7 @@ export default function App() {
   const [selectedCities, setSelectedCities] = useState([])
   const chartData = useChartData(history, selectedCities, selectedMetric)
 
-  useEffect(() => {
-    if (!history || history.length === 0 || selectedCities.length === 0) {
-      setChartData(null)
-      return
-    }
-    
-    const datasets = selectedCities.map((city, idx) => {
-      const cityRecords = history
-        .filter(d => d.city_name === city && d.fetched_at)
-        .filter(d => {
-          if (selectedMetric === 'temperature') return typeof d.temperature === 'number'
-          if (selectedMetric === 'humidity') return typeof d.humidity === 'number'
-          if (selectedMetric === 'wind') return typeof d.wind_speed === 'number'
-          return false
-        })
-        .slice()
-        .sort((a, b) => new Date(a.fetched_at) - new Date(b.fetched_at))
-      const valueAccessor = (d) => {
-        if (selectedMetric === 'temperature') return d.temperature
-        if (selectedMetric === 'humidity') return d.humidity
-        if (selectedMetric === 'wind') return d.wind_speed
-        return null
-      }
-
-      return {
-        label: city,
-        data: cityRecords.map(d => ({ x: new Date(d.fetched_at).toLocaleString(), y: valueAccessor(d) })),
-        fill: false,
-        borderColor: `hsl(${(idx * 60) % 360} 70% 40%)`,
-        tension: 0.1,
-      }
-    })
-    
-    const allLabels = Array.from(new Set([
-      ...datasets.flatMap(ds => ds.data.map(p => p.x))
-    ])).sort((a, b) => new Date(a) - new Date(b))
-    
-    const finalDatasets = datasets.map(ds => ({
-      ...ds,
-      data: allLabels.map(label => {
-        const found = ds.data.find(p => p.x === label)
-        return found ? found.y : null
-      })
-    }))
-    setChartData({ labels: allLabels, datasets: finalDatasets })
-  }, [history, selectedCities, selectedMetric])
+  // chart data is computed by useChartData hook
 
   const metricLabel = selectedMetric === 'temperature' ? 'Temperature (°C)'
     : selectedMetric === 'humidity' ? 'Humidity (%)'
@@ -108,66 +63,7 @@ export default function App() {
     }
   }
 
-  // Auto-close modal after 5 seconds and show countdown
-  useEffect(() => {
-    // clear any existing timers
-    if (modalTimerRef.current) {
-      clearTimeout(modalTimerRef.current)
-      modalTimerRef.current = null
-    }
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-
-    if (modalMessage) {
-      // start countdown from 5
-      setCountdown(5)
-      modalTimerRef.current = setTimeout(() => {
-        setModalMessage(null)
-      }, 5000)
-
-      intervalRef.current = setInterval(() => {
-        setCountdown((s) => {
-          if (s <= 1) {
-            // clear interval when reaching zero
-            if (intervalRef.current) {
-              clearInterval(intervalRef.current)
-              intervalRef.current = null
-            }
-            return 0
-          }
-          return s - 1
-        })
-      }, 1000)
-    } else {
-      setCountdown(0)
-    }
-
-    return () => {
-      if (modalTimerRef.current) {
-        clearTimeout(modalTimerRef.current)
-        modalTimerRef.current = null
-      }
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-    }
-  }, [modalMessage])
-
-  const hideModal = () => {
-    if (modalTimerRef.current) {
-      clearTimeout(modalTimerRef.current)
-      modalTimerRef.current = null
-    }
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-    setCountdown(0)
-    setModalMessage(null)
-  }
+  // modal logic is handled by useModal hook
 
   return (
     <div className="container">
